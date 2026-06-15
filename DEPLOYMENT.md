@@ -26,6 +26,22 @@ Recommended for this project.
 
 The included `vercel.json` keeps refresh/deep-link routing pointed to `index.html`.
 
+### Contact Form Email Backend
+
+The contact form posts to `/api/contact`, a Vercel serverless function that sends email through Gmail SMTP.
+
+Add these environment variables in Vercel:
+
+```bash
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
+SMTP_USER=pillasrikar12@gmail.com
+SMTP_PASS=your_gmail_app_password
+CONTACT_TO=pillasrikar12@gmail.com
+```
+
+Use a Gmail App Password for `SMTP_PASS`, not your normal Gmail password. After adding the variables, redeploy the project.
+
 ## Render
 
 1. Push this folder to a GitHub repository.

@@ -1,7 +1,47 @@
+import { useState } from 'react';
 import { motion } from 'motion/react';
-import { Github, Linkedin, Mail, MapPin, Phone } from 'lucide-react';
+import { Github, Linkedin, Loader2, Mail, MapPin, Phone, Send } from 'lucide-react';
 
 export function Contact() {
+  const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
+  const [statusMessage, setStatusMessage] = useState('');
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setStatus('sending');
+    setStatusMessage('');
+
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.get('name'),
+          email: formData.get('email'),
+          message: formData.get('message'),
+        }),
+      });
+
+      const result = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(result?.message || 'Unable to send message right now.');
+      }
+
+      form.reset();
+      setStatus('success');
+      setStatusMessage('Message sent successfully. I will get back to you soon.');
+    } catch (error) {
+      setStatus('error');
+      setStatusMessage(error instanceof Error ? error.message : 'Unable to send message right now.');
+    }
+  }
+
   return (
     <section id="contact" className="py-20 px-6 bg-muted/30">
       <div className="max-w-4xl mx-auto">
@@ -88,10 +128,7 @@ export function Contact() {
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
             className="space-y-4"
-            onSubmit={(e) => {
-              e.preventDefault();
-              alert('Form submission is a demo. Connect to your backend service.');
-            }}
+            onSubmit={handleSubmit}
           >
             <div>
               <label htmlFor="name" className="block mb-2">Name</label>
@@ -131,10 +168,34 @@ export function Contact() {
 
             <button
               type="submit"
-              className="w-full px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity"
+              disabled={status === 'sending'}
+              className="inline-flex w-full items-center justify-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity disabled:cursor-not-allowed disabled:opacity-70"
             >
-              Send Message
+              {status === 'sending' ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Sending
+                </>
+              ) : (
+                <>
+                  <Send className="w-4 h-4" />
+                  Send Message
+                </>
+              )}
             </button>
+
+            {statusMessage && (
+              <p
+                className={
+                  status === 'success'
+                    ? 'text-sm text-green-600'
+                    : 'text-sm text-destructive'
+                }
+                role="status"
+              >
+                {statusMessage}
+              </p>
+            )}
           </motion.form>
         </div>
       </div>
